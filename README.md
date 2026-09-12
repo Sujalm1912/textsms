@@ -28,4 +28,15 @@ py -m streamlit run app.py
 
 For Streamlit Community Cloud, push this folder to GitHub and select `app.py` as the main file. The `requirements.txt` file is included for dependency installation.
 
+## Enable Messages Between Users
+
+The app needs a shared database for one user to receive another user's messages. Create a Supabase project, run [supabase_schema.sql](supabase_schema.sql) in its SQL editor, then add these secrets in Streamlit Cloud under **App settings > Secrets**:
+
+```toml
+SUPABASE_URL = "https://your-project.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY = "your-service-role-key"
+```
+
+Use the service-role key only in Streamlit server secrets. Never put it in browser JavaScript or commit it to GitHub. Without these secrets, the app intentionally uses per-session local messages and cannot deliver between users.
+
 This is still a prototype: media, profiles, and messages live in the current browser/Streamlit session. Real cross-device profile syncing, last-seen updates, and permanent history require a backend with authentication, storage, and realtime messaging.

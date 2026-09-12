@@ -1,10 +1,13 @@
 import base64
+import json
 import random
 import string
 from datetime import datetime
 from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 
 import streamlit as st
+from streamlit_autorefresh import st_autorefresh
 
 st.set_page_config(page_title="SMSTalks", page_icon="↗", layout="wide", initial_sidebar_state="expanded")
 
@@ -69,6 +72,66 @@ def now():
     return datetime.now().strftime("%I:%M %p").lstrip("0")
 
 
+def supabase_settings():
+    try:
+        return st.secrets["SUPABASE_URL"].rstrip("/"), st.secrets["SUPABASE_SERVICE_ROLE_KEY"]
+    except (KeyError, FileNotFoundError):
+        return None
+
+
+def supabase_request(method, path, payload=None, query=""):
+    settings = supabase_settings()
+    if not settings:
+        return None
+    url, service_key = settings
+    body = json.dumps(payload).encode() if payload is not None else None
+    request = Request(f"{url}/rest/v1/{path}{query}", data=body, method=method)
+    request.add_header("apikey", service_key)
+    request.add_header("Authorization", f"Bearer {service_key}")
+    request.add_header("Content-Type", "application/json")
+    request.add_header("Prefer", "return=representation")
+    try:
+        with urlopen(request, timeout=8) as response:
+            return json.loads(response.read() or b"[]")
+    except Exception as error:
+        st.session_state.backend_error = str(error)
+        return None
+
+
+def load_shared_messages(thread_id):
+    rows = supabase_request(
+        "GET",
+        "messages",
+        query=f"?thread_id=eq.{thread_id}&order=created_at.asc",
+    )
+    if rows is None:
+        return None
+    return [
+        {
+            "from": "me" if row["sender_id"] == st.session_state.profile["id"] else "them",
+            "text": row.get("body", ""),
+            "time": datetime.fromisoformat(row["created_at"].replace("Z", "+00:00")).strftime("%I:%M %p").lstrip("0"),
+            **({row["media_type"]: row["media_data"]} if row.get("media_type") else {}),
+        }
+        for row in rows
+    ]
+
+
+def save_shared_message(thread_id, message):
+    media_type = next((key for key in ("image", "video", "audio") if key in message), None)
+    supabase_request(
+        "POST",
+        "messages",
+        {
+            "thread_id": thread_id,
+            "sender_id": st.session_state.profile["id"],
+            "body": message.get("text", ""),
+            "media_type": media_type,
+            "media_data": message.get(media_type) if media_type else None,
+        },
+    )
+
+
 if "profile" not in st.session_state:
     st.session_state.profile = {"name": "You", "id": make_id(), "photo": None}
 if "contact" not in st.session_state:
@@ -86,6 +149,11 @@ if "messages" not in st.session_state:
 if "conversations" not in st.session_state:
     st.session_state.conversations = {st.session_state.contact["id"]: st.session_state.messages}
 
+shared_messages = load_shared_messages(st.session_state.contact["id"])
+if shared_messages is not None:
+    st.session_state.messages = shared_messages
+    st.session_state.conversations[st.session_state.contact["id"]] = shared_messages
+
 # A query parameter makes a thread link portable between browser sessions.
 query_thread = st.query_params.get("thread")
 if query_thread:
@@ -96,6 +164,8 @@ if query_thread:
     st.session_state.started = True
 
 if st.session_state.started:
+    if supabase_settings():
+        st_autorefresh(interval=3000, key="message_poll")
     st.markdown('<style>[data-testid="stSidebar"] { display: none; } .block-container { max-width: 1100px; }</style>', unsafe_allow_html=True)
 
 with st.sidebar:
@@ -162,6 +232,11 @@ if not st.session_state.started:
 
 with col_main:
     contact = st.session_state.contact
+    if supabase_settings():
+        if st.button("Refresh messages", key="refresh_messages"):
+            st.rerun()
+    else:
+        st.info("Shared messaging is not configured yet. Add Supabase secrets to receive messages from another user.")
     if st.button("← Inbox", key="back_to_inbox"):
         st.session_state.started = False
         st.query_params.clear()
@@ -203,6 +278,7 @@ with col_main:
             message["audio"] = voice_message.getvalue()
         st.session_state.messages.append(message)
         st.session_state.conversations[contact["id"]] = st.session_state.messages
+        save_shared_message(contact["id"], message)
         st.rerun()
 
 with col_side:
