@@ -289,7 +289,7 @@ function handleInboxClick(event) {
 $('#inboxList').addEventListener('click', handleInboxClick);
 $('#inboxPageList').addEventListener('click', handleInboxClick);
 
-$('#backToInbox').addEventListener('click', () => { window.location.hash = ''; });
+$('#backToInbox').addEventListener('click', () => { window.location.hash = '#inbox'; });
 window.addEventListener('hashchange', routeFromUrl);
 $('#attachButton').addEventListener('click', () => $('#mediaInput').click());
 $('#mediaInput').addEventListener('change', (event) => {
