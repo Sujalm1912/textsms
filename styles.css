@@ -13,6 +13,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body { margin: 0; color: var(--ink); background: var(--paper); font-family: 'Manrope', sans-serif; }
 button, input, textarea { font: inherit; }
 button { cursor: pointer; }
@@ -77,6 +78,15 @@ input:focus, textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px 
 .start-connect-form label { margin-top: 0; }
 .start-connect-form input { min-height: 46px; font-size: 13px; }
 .start-connect-form .icon-button { width: 46px; }
+.inbox-screen { min-height: 100vh; padding: 72px 10%; }
+.inbox-screen-heading { margin-bottom: 26px; }
+.inbox-screen-heading h2 { margin-top: 8px; font-size: 30px; }
+.inbox-screen-heading p { margin-top: 8px; color: var(--muted); font-size: 13px; }
+.inbox-page-list { max-width: 720px; display: grid; gap: 8px; }
+.inbox-page-list .inbox-item { min-height: 70px; padding: 13px 15px; border: 1px solid var(--line); background: rgba(255,253,248,.68); box-shadow: var(--shadow); }
+.inbox-page-list .inbox-item strong { font-size: 14px; }
+.inbox-page-list .inbox-avatar { width: 44px; height: 44px; }
+.inbox-page-empty { max-width: 500px; padding-left: 0; }
 .chat-header { padding: 32px 46px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
 .back-button { display: inline-flex; align-items: center; gap: 6px; border: 0; color: var(--green-dark); background: transparent; font-size: 12px; font-weight: 700; }
 .contact-summary { display: flex; align-items: center; gap: 13px; }
@@ -137,6 +147,8 @@ input:focus, textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px 
   .start-content h2 { font-size: 24px; }
   .chat-view { min-height: calc(100dvh - 185px); grid-template-rows: auto 1fr auto auto; }
   .chat-mode .chat-view { min-height: 100dvh; }
+  .inbox-screen { min-height: calc(100dvh - 185px); padding: 30px 16px; }
+  .inbox-screen-heading h2 { font-size: 24px; }
   .chat-header { padding: 13px 16px; position: sticky; top: 0; z-index: 2; background: rgba(244,239,229,.94); backdrop-filter: blur(10px); }
   .back-button { font-size: 0; }
   .back-button:first-letter { font-size: 20px; }

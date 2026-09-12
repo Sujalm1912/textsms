@@ -9,7 +9,7 @@ function makeId() {
 const defaultState = {
   profile: { name: 'You', id: makeId(), photo: '' },
   contact: { name: 'Alex Morgan', id: 'SMS-4A2L9Q', initials: 'AM', photo: '', lastSeen: 'online' },
-  started: false,
+  view: 'start',
   contacts: [{ name: 'Alex Morgan', id: 'SMS-4A2L9Q', initials: 'AM', photo: '', lastSeen: 'online' }],
   messages: [
     { from: 'them', text: 'Hey! I made it here. This feels much quieter than a group chat.', time: '10:42 AM' },
@@ -21,7 +21,7 @@ const defaultState = {
 const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || defaultState;
 const $ = (selector) => document.querySelector(selector);
 
-if (typeof state.started !== 'boolean') state.started = false;
+if (!state.view) state.view = 'start';
 if (!Array.isArray(state.contacts)) state.contacts = state.contact ? [state.contact] : [];
 if (!state.conversations) state.conversations = state.contact ? { [state.contact.id]: state.messages || [] } : {};
 if (state.contact && !state.contact.lastSeen) state.contact.lastSeen = 'last seen recently';
@@ -62,14 +62,12 @@ function renderContact() {
   setAvatar(introAvatar, state.contact.initials || initials(state.contact.name), state.contact.photo);
 }
 
-function renderInbox() {
-  const list = $('#inboxList');
+function renderInboxList(selector) {
+  const list = $(selector);
   list.innerHTML = '';
-  $('#inboxCount').textContent = state.contacts.length;
-  $('#inboxEmpty').hidden = state.contacts.length > 0;
   state.contacts.forEach((contact) => {
     const button = document.createElement('button');
-    button.className = `inbox-item${state.contact?.id === contact.id && state.started ? ' active' : ''}`;
+    button.className = `inbox-item${state.contact?.id === contact.id && state.view === 'chat' ? ' active' : ''}`;
     button.type = 'button';
     button.dataset.contactId = contact.id;
     const avatar = document.createElement('span');
@@ -86,39 +84,50 @@ function renderInbox() {
   });
 }
 
+function renderInbox() {
+  $('#inboxCount').textContent = state.contacts.length;
+  $('#inboxEmpty').hidden = state.contacts.length > 0;
+  $('#inboxPageEmpty').hidden = state.contacts.length > 0;
+  renderInboxList('#inboxList');
+  renderInboxList('#inboxPageList');
+}
+
 function toggleViews() {
-  const chatMode = state.started;
-  $('#startScreen').hidden = chatMode;
+  const chatMode = state.view === 'chat';
+  $('#startScreen').hidden = state.view !== 'start';
+  $('#inboxScreen').hidden = state.view !== 'inbox';
   $('#chatView').hidden = !chatMode;
+  $('.inbox-card').hidden = state.view === 'start';
   $('#appShell').classList.toggle('chat-mode', chatMode);
 }
 
 function openContact(contact) {
   state.contact = contact;
   state.messages = state.conversations[contact.id] || [];
-  state.started = true;
+  state.view = 'chat';
   saveState();
   window.location.hash = `chat/${encodeURIComponent(contact.id)}`;
 }
 
 function routeFromUrl() {
   const match = window.location.hash.match(/^#chat\/(.+)$/);
-  if (!match) {
-    state.started = false;
+  if (match) {
+    const contact = state.contacts.find((entry) => entry.id === decodeURIComponent(match[1]));
+    if (!contact) {
+      window.location.hash = '#inbox';
+      return;
+    }
+    state.contact = contact;
+    state.messages = state.conversations[contact.id] || [];
+    state.view = 'chat';
+    renderInbox();
+    renderContact();
+    renderMessages();
     toggleViews();
     return;
   }
-  const contact = state.contacts.find((entry) => entry.id === decodeURIComponent(match[1]));
-  if (!contact) {
-    window.location.hash = '';
-    return;
-  }
-  state.contact = contact;
-  state.messages = state.conversations[contact.id] || [];
-  state.started = true;
+  state.view = window.location.hash === '#inbox' ? 'inbox' : 'start';
   renderInbox();
-  renderContact();
-  renderMessages();
   toggleViews();
 }
 
@@ -228,14 +237,14 @@ $('#connectForm').addEventListener('submit', (event) => {
   }
   state.contact = { name: 'New connection', id: enteredId, initials: 'NC', photo: '', lastSeen: 'last seen recently' };
   state.contacts = [state.contact, ...state.contacts.filter((contact) => contact.id !== enteredId)];
-  state.started = true;
+  state.view = 'inbox';
   state.messages = state.conversations[enteredId] || [];
   saveState();
   renderInbox();
   renderContact();
   renderMessages();
   toggleViews();
-  window.location.hash = `chat/${encodeURIComponent(enteredId)}`;
+  window.location.hash = '#inbox';
   $('#connectFeedback').textContent = '';
   $('#contactId').value = '';
   showToast('Private thread opened');
@@ -269,13 +278,16 @@ $('#messageInput').addEventListener('input', (event) => {
   event.target.style.height = `${Math.min(event.target.scrollHeight, 120)}px`;
 });
 
-$('#inboxList').addEventListener('click', (event) => {
+function handleInboxClick(event) {
   const item = event.target.closest('.inbox-item');
   if (!item) return;
   const contact = state.contacts.find((entry) => entry.id === item.dataset.contactId);
   if (!contact) return;
   openContact(contact);
-});
+}
+
+$('#inboxList').addEventListener('click', handleInboxClick);
+$('#inboxPageList').addEventListener('click', handleInboxClick);
 
 $('#backToInbox').addEventListener('click', () => { window.location.hash = ''; });
 window.addEventListener('hashchange', routeFromUrl);

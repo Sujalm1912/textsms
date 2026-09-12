@@ -88,11 +88,15 @@ if "conversations" not in st.session_state:
 
 # A query parameter makes a thread link portable between browser sessions.
 query_thread = st.query_params.get("thread")
-if query_thread and query_thread != st.session_state.contact["id"]:
-    st.session_state.contact = {"name": "New connection", "id": query_thread, "photo": None, "last_seen": "last seen recently"}
-    st.session_state.contacts = [st.session_state.contact, *[contact for contact in st.session_state.contacts if contact["id"] != query_thread]]
-    st.session_state.messages = st.session_state.conversations.get(query_thread, [])
+if query_thread:
+    if query_thread != st.session_state.contact["id"]:
+        st.session_state.contact = {"name": "New connection", "id": query_thread, "photo": None, "last_seen": "last seen recently"}
+        st.session_state.contacts = [st.session_state.contact, *[contact for contact in st.session_state.contacts if contact["id"] != query_thread]]
+        st.session_state.messages = st.session_state.conversations.get(query_thread, [])
     st.session_state.started = True
+
+if st.session_state.started:
+    st.markdown('<style>[data-testid="stSidebar"] { display: none; } .block-container { max-width: 1100px; }</style>', unsafe_allow_html=True)
 
 with st.sidebar:
     st.markdown('<div class="brand"><span class="brand-mark">↗</span>SMSTalks</div>', unsafe_allow_html=True)
@@ -121,6 +125,8 @@ with st.sidebar:
                 st.session_state.messages = st.session_state.conversations.get(contact["id"], [])
             st.session_state.contact = contact
             st.session_state.started = True
+            st.query_params["view"] = "chat"
+            st.query_params["thread"] = contact["id"]
             st.rerun()
     st.caption("Local session prototype · add a database for real cross-device delivery")
 
@@ -139,6 +145,7 @@ if not st.session_state.started:
                     st.session_state.contacts = [st.session_state.contact, *[contact for contact in st.session_state.contacts if contact["id"] != candidate]]
                     st.session_state.messages = st.session_state.conversations.get(candidate, [])
                     st.session_state.started = True
+                    st.query_params["view"] = "chat"
                     st.query_params["thread"] = candidate
                     st.rerun()
             else:
@@ -150,6 +157,10 @@ if not st.session_state.started:
 
 with col_main:
     contact = st.session_state.contact
+    if st.button("← Inbox", key="back_to_inbox"):
+        st.session_state.started = False
+        st.query_params.clear()
+        st.rerun()
     st.markdown(
         f'<div class="contact-header"><div class="contact">{avatar_html(contact["name"], contact["photo"])}'
         f'<div><h2 style="margin:0">{contact["name"]} <span class="online">● {contact.get("last_seen", "last seen recently")}</span></h2>'
