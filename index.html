@@ -29,7 +29,6 @@
         </div>
         <div class="profile-actions">
           <button class="id-copy" id="copyIdButton" type="button"><span>Copy my ID</span><span aria-hidden="true">⌘</span></button>
-          <button class="qr-button" id="qrButton" type="button" aria-label="Show my QR code" title="Show my QR code">▦</button>
         </div>
       </section>
 
@@ -56,7 +55,6 @@
             <label for="contactId">Their unique ID</label>
             <div class="input-with-action">
               <input id="contactId" name="contactId" type="text" placeholder="SMS-7K4P2Q" autocomplete="off" maxlength="10" required />
-              <button type="button" class="scan-button" id="scanButton" aria-label="Scan QR code" title="Scan QR code">⌾</button>
               <button type="submit" class="icon-button" aria-label="Connect">→</button>
             </div>
           </form>
@@ -120,23 +118,6 @@
       <input id="photoInput" type="file" accept="image/png,image/jpeg,image/webp" />
       <p class="helper" id="photoFeedback"></p>
       <div class="dialog-actions"><button class="secondary-button" value="cancel" type="submit">Cancel</button><button class="primary-button" id="saveProfileButton" value="default" type="submit">Save changes</button></div>
-    </form>
-  </dialog>
-
-  <dialog id="qrDialog" class="qr-dialog">
-    <form method="dialog">
-      <div class="dialog-header"><div><span class="eyebrow">SCAN TO CONNECT</span><h2>My SMSTalks ID</h2></div><button class="close-button" type="submit" aria-label="Close">×</button></div>
-      <img id="qrImage" class="qr-image" alt="QR code for your SMSTalks ID" />
-      <p class="qr-id mono" id="qrId"></p>
-      <p class="muted qr-help">Scan this code to share your unique ID.</p>
-    </form>
-  </dialog>
-
-  <dialog id="scanDialog" class="scan-dialog">
-    <form method="dialog">
-      <div class="dialog-header"><div><span class="eyebrow">SCAN TO CONNECT</span><h2>Scan their QR</h2></div><button class="close-button" type="submit" aria-label="Close">×</button></div>
-      <video id="scanVideo" class="scan-video" autoplay muted playsinline></video>
-      <p class="muted scan-status" id="scanStatus">Point the camera at their SMSTalks QR code.</p>
     </form>
   </dialog>
 

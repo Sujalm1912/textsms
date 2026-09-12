@@ -3,7 +3,6 @@
 A small messaging prototype for two people. It includes:
 
 - A unique mixed `SMS-7K4P2Q` ID for each local profile
-- QR code sharing and camera QR scanning for connecting
 - Profile name editing and local profile picture upload
 - A connect-by-ID flow
 - An Inbox contact list with a centered Connect Privately start screen
