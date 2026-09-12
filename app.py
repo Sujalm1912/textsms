@@ -1,13 +1,19 @@
 import base64
 import json
+import os
 import random
+import re
 import string
 from datetime import datetime
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 import streamlit as st
+from dotenv import load_dotenv
 from streamlit_autorefresh import st_autorefresh
+from twilio.rest import Client
+
+load_dotenv()
 
 st.set_page_config(page_title="SMSTalks", page_icon="↗", layout="wide", initial_sidebar_state="expanded")
 
@@ -70,6 +76,37 @@ def avatar_html(name, photo):
 
 def now():
     return datetime.now().strftime("%I:%M %p").lstrip("0")
+
+
+def twilio_settings():
+    values = {}
+    for key in ("TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_PHONE_NUMBER"):
+        try:
+            values[key] = st.secrets[key]
+        except (KeyError, FileNotFoundError):
+            values[key] = os.getenv(key)
+    return values if all(values.values()) else None
+
+
+def valid_phone(phone):
+    return bool(re.fullmatch(r"\+[1-9]\d{7,14}", phone.strip()))
+
+
+def send_twilio_sms(phone, message):
+    settings = twilio_settings()
+    if not settings:
+        return None, "Twilio is not configured. Add Twilio secrets before sending SMS."
+    if not valid_phone(phone):
+        return None, "Use the recipient's phone number in E.164 format, for example +919876543210."
+    try:
+        sms = Client(settings["TWILIO_ACCOUNT_SID"], settings["TWILIO_AUTH_TOKEN"]).messages.create(
+            body=message,
+            from_=settings["TWILIO_PHONE_NUMBER"],
+            to=phone.strip(),
+        )
+        return sms.sid, None
+    except Exception as error:
+        return None, f"Twilio could not send the SMS: {error}"
 
 
 def supabase_settings():
@@ -135,7 +172,7 @@ def save_shared_message(thread_id, message):
 if "profile" not in st.session_state:
     st.session_state.profile = {"name": "You", "id": make_id(), "photo": None}
 if "contact" not in st.session_state:
-    st.session_state.contact = {"name": "Alex Morgan", "id": "SMS-4A2L9Q", "photo": None, "last_seen": "online"}
+    st.session_state.contact = {"name": "Alex Morgan", "id": "SMS-4A2L9Q", "photo": None, "last_seen": "online", "phone": ""}
 if "contacts" not in st.session_state:
     st.session_state.contacts = [st.session_state.contact]
 if "started" not in st.session_state:
@@ -158,7 +195,7 @@ if shared_messages is not None:
 query_thread = st.query_params.get("thread")
 if query_thread:
     if query_thread != st.session_state.contact["id"]:
-        st.session_state.contact = {"name": "New connection", "id": query_thread, "photo": None, "last_seen": "last seen recently"}
+        st.session_state.contact = {"name": "New connection", "id": query_thread, "photo": None, "last_seen": "last seen recently", "phone": ""}
         st.session_state.contacts = [st.session_state.contact, *[contact for contact in st.session_state.contacts if contact["id"] != query_thread]]
         st.session_state.messages = st.session_state.conversations.get(query_thread, [])
     st.session_state.started = True
@@ -210,7 +247,7 @@ if not st.session_state.started:
                 if candidate == st.session_state.profile["id"]:
                     st.warning("That is your own ID.")
                 else:
-                    st.session_state.contact = {"name": "New connection", "id": candidate, "photo": None, "last_seen": "last seen recently"}
+                    st.session_state.contact = {"name": "New connection", "id": candidate, "photo": None, "last_seen": "last seen recently", "phone": ""}
                     st.session_state.contacts = [st.session_state.contact, *[contact for contact in st.session_state.contacts if contact["id"] != candidate]]
                     st.session_state.messages = st.session_state.conversations.get(candidate, [])
                     st.session_state.started = True
@@ -273,12 +310,29 @@ with col_main:
         st.session_state.messages.append(message)
         st.session_state.conversations[contact["id"]] = st.session_state.messages
         save_shared_message(contact["id"], message)
+        if st.session_state.get("send_as_sms"):
+            sms_sid, sms_error = send_twilio_sms(st.session_state.get("contact_phone", ""), message_text)
+            if sms_error:
+                st.error(sms_error)
+            else:
+                st.success(f"SMS sent successfully. Message ID: {sms_sid}")
         st.rerun()
 
 with col_side:
     st.markdown('<span class="eyebrow">SHARE THREAD</span>', unsafe_allow_html=True)
     st.subheader("Invite one person")
     thread_id = st.session_state.contact["id"]
+    contact_phone = st.text_input(
+        "Recipient phone number",
+        value=contact.get("phone", ""),
+        placeholder="+919876543210",
+        key="contact_phone",
+        help="Use E.164 format. This is used only when SMS sending is enabled.",
+    )
+    st.session_state.contact["phone"] = contact_phone
+    st.checkbox("Also send chat messages as SMS", key="send_as_sms", disabled=not bool(twilio_settings()))
+    if not twilio_settings():
+        st.caption("Add Twilio secrets to enable SMS delivery.")
     try:
         base_url = st.context.url.split("?")[0]
     except (AttributeError, TypeError):
