@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f4efe5" />
+  <title>SMSTalks — private messages</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Profile and conversation details">
+      <div class="brand"><span class="brand-mark">↗</span><span>SMSTalks</span></div>
+
+      <section class="profile-card">
+        <div class="profile-heading">
+          <span class="eyebrow">YOUR PROFILE</span>
+          <button class="text-button" id="editProfileButton" type="button">Edit</button>
+        </div>
+        <div class="profile-row">
+          <button class="avatar avatar-large avatar-button" id="profileAvatarButton" type="button" aria-label="Change profile picture">YO</button>
+          <div>
+            <h1 id="profileName">You</h1>
+            <p class="mono muted" id="profileId">LL-000000</p>
+          </div>
+        </div>
+        <button class="id-copy" id="copyIdButton" type="button"><span>Copy my ID</span><span aria-hidden="true">⌘</span></button>
+      </section>
+
+      <section class="connect-card">
+        <div class="section-title-row">
+          <div>
+            <span class="eyebrow">START A THREAD</span>
+            <h2>Connect privately</h2>
+          </div>
+          <span class="status-dot" aria-label="Ready"></span>
+        </div>
+        <p class="muted">Share your ID with one person, or enter theirs to open a private thread.</p>
+        <form id="connectForm">
+          <label for="contactId">Their unique ID</label>
+          <div class="input-with-action">
+            <input id="contactId" name="contactId" type="text" placeholder="LL-123456" autocomplete="off" maxlength="9" required />
+            <button type="submit" class="icon-button" aria-label="Connect">→</button>
+          </div>
+        </form>
+        <p class="helper" id="connectFeedback" role="status"></p>
+      </section>
+
+      <div class="sidebar-footer">
+        <span class="lock-icon">▣</span>
+        <span>Local prototype · no account required</span>
+      </div>
+    </aside>
+
+    <main class="chat-panel">
+      <header class="chat-header">
+        <div class="contact-summary">
+          <div class="avatar" id="contactAvatar">AM</div>
+          <div>
+            <div class="title-line"><h2 id="contactName">Alex Morgan</h2><span class="presence">● online</span></div>
+            <p class="mono muted" id="contactIdLabel">LL-482913</p>
+          </div>
+        </div>
+        <div class="chat-actions">
+          <button class="round-button" id="clearChatButton" type="button" aria-label="Clear conversation" title="Clear conversation">⌫</button>
+          <button class="round-button" id="moreButton" type="button" aria-label="More options" title="More options">•••</button>
+        </div>
+      </header>
+
+      <div class="conversation" id="conversation" aria-live="polite">
+        <div class="date-divider"><span>Today</span></div>
+        <div class="thread-intro">
+          <div class="avatar avatar-medium">AM</div>
+          <h3 id="introName">Alex Morgan</h3>
+          <p>Messages here are just between the two of you.</p>
+        </div>
+        <div class="message-list" id="messageList"></div>
+      </div>
+
+      <form class="composer" id="messageForm">
+        <button class="round-button composer-action" id="attachButton" type="button" aria-label="Add photo or video" title="Add photo or video">＋</button>
+        <input id="mediaInput" type="file" accept="image/*,video/*" hidden />
+        <button class="round-button composer-action" id="voiceButton" type="button" aria-label="Record voice message" title="Record voice message">◉</button>
+        <textarea id="messageInput" rows="1" placeholder="Write a message..." aria-label="Message"></textarea>
+        <button class="send-button" type="submit" aria-label="Send message">↗</button>
+      </form>
+      <p class="composer-note">Press Enter to send · Shift + Enter for a new line · ◉ voice</p>
+    </main>
+  </div>
+
+  <dialog id="profileDialog" class="profile-dialog">
+    <form method="dialog" id="profileForm">
+      <div class="dialog-header"><div><span class="eyebrow">YOUR PROFILE</span><h2>Make it yours</h2></div><button class="close-button" value="cancel" type="submit" aria-label="Close">×</button></div>
+      <label for="nameInput">Display name</label>
+      <input id="nameInput" maxlength="24" required />
+      <label for="photoInput">Profile picture <span class="muted">optional</span></label>
+      <input id="photoInput" type="file" accept="image/png,image/jpeg,image/webp" />
+      <p class="helper" id="photoFeedback"></p>
+      <div class="dialog-actions"><button class="secondary-button" value="cancel" type="submit">Cancel</button><button class="primary-button" id="saveProfileButton" value="default" type="submit">Save changes</button></div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
