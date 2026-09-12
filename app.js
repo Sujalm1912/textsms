@@ -282,6 +282,7 @@ function handleInboxClick(event) {
 }
 
 $('#inboxPageList').addEventListener('click', handleInboxClick);
+$('#inboxConnectButton').addEventListener('click', () => { window.location.hash = '#start'; });
 
 $('#backToInbox').addEventListener('click', () => { window.location.hash = '#inbox'; });
 window.addEventListener('hashchange', routeFromUrl);

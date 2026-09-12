@@ -80,6 +80,7 @@ input:focus, textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px 
 .inbox-screen-heading { margin-bottom: 26px; }
 .inbox-screen-heading h2 { margin-top: 8px; font-size: 30px; }
 .inbox-screen-heading p { margin-top: 8px; color: var(--muted); font-size: 13px; }
+.inbox-connect-button { margin-top: 18px; }
 .inbox-page-list { max-width: 720px; display: grid; gap: 8px; }
 .inbox-page-list .inbox-item { min-height: 70px; padding: 13px 15px; border: 1px solid var(--line); background: rgba(255,253,248,.68); box-shadow: var(--shadow); }
 .inbox-page-list .inbox-item strong { font-size: 14px; }
