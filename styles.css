@@ -89,8 +89,9 @@ input:focus, textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px 
 .inbox-page-list .inbox-item strong { font-size: 14px; }
 .inbox-page-list .inbox-avatar { width: 44px; height: 44px; }
 .inbox-page-empty { max-width: 500px; padding-left: 0; }
-.chat-header { padding: 32px 46px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
-.back-button { display: inline-flex; align-items: center; gap: 6px; border: 0; color: var(--green-dark); background: transparent; font-size: 12px; font-weight: 700; }
+.chat-header { position: relative; padding: 32px 46px 24px 142px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+.back-button { position: absolute; top: 30px; left: 46px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 9px; padding: 8px 11px; color: var(--green-dark); background: rgba(255,255,255,.45); font-size: 12px; font-weight: 700; }
+.back-button:hover { background: var(--paper-deep); }
 .contact-summary { display: flex; align-items: center; gap: 13px; }
 .title-line { justify-content: flex-start; gap: 9px; margin-bottom: 5px; }
 .presence { color: var(--green); font-size: 10px; font-weight: 700; }
@@ -152,8 +153,8 @@ input:focus, textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px 
   .chat-mode .chat-view { min-height: 100dvh; }
   .inbox-screen { min-height: calc(100dvh - 185px); padding: 30px 16px; }
   .inbox-screen-heading h2 { font-size: 24px; }
-  .chat-header { padding: 13px 16px; position: sticky; top: 0; z-index: 2; background: rgba(244,239,229,.94); backdrop-filter: blur(10px); }
-  .back-button { font-size: 0; }
+  .chat-header { padding: 13px 16px 13px 64px; position: sticky; top: 0; z-index: 2; background: rgba(244,239,229,.94); backdrop-filter: blur(10px); }
+  .back-button { top: 12px; left: 16px; width: 36px; height: 36px; justify-content: center; padding: 0; border-radius: 50%; font-size: 0; }
   .back-button:first-letter { font-size: 20px; }
   .contact-summary { gap: 10px; }
   .contact-summary .avatar { width: 38px; height: 38px; }
