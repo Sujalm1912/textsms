@@ -30,23 +30,10 @@
         <button class="id-copy" id="copyIdButton" type="button"><span>Copy my ID</span><span aria-hidden="true">⌘</span></button>
       </section>
 
-      <section class="connect-card">
-        <div class="section-title-row">
-          <div>
-            <span class="eyebrow">START A THREAD</span>
-            <h2>Connect privately</h2>
-          </div>
-          <span class="status-dot" aria-label="Ready"></span>
-        </div>
-        <p class="muted">Enter the other person's unique ID to open your private thread.</p>
-        <form id="connectForm">
-          <label for="contactId">Enter their unique ID</label>
-          <div class="input-with-action">
-            <input id="contactId" name="contactId" type="text" placeholder="SMS-7K4P2Q" autocomplete="off" maxlength="10" required />
-            <button type="submit" class="icon-button" aria-label="Connect">→</button>
-          </div>
-        </form>
-        <p class="helper" id="connectFeedback" role="status"></p>
+      <section class="inbox-card" aria-label="Inbox">
+        <div class="inbox-heading"><span class="eyebrow">INBOX</span><span class="inbox-count" id="inboxCount">0</span></div>
+        <div class="inbox-list" id="inboxList"></div>
+        <p class="inbox-empty" id="inboxEmpty">No conversations yet.<br />Start one from the center.</p>
       </section>
 
       <div class="sidebar-footer">
@@ -56,21 +43,38 @@
     </aside>
 
     <main class="chat-panel">
-      <header class="chat-header">
+      <section class="start-screen" id="startScreen">
+        <div class="start-content">
+          <span class="start-icon">↗</span>
+          <span class="eyebrow">PRIVATE MESSAGING</span>
+          <h2>Connect privately</h2>
+          <p>Enter the unique ID of the person you want to message.</p>
+          <form id="connectForm" class="start-connect-form">
+            <label for="contactId">Their unique ID</label>
+            <div class="input-with-action">
+              <input id="contactId" name="contactId" type="text" placeholder="SMS-7K4P2Q" autocomplete="off" maxlength="10" required />
+              <button type="submit" class="icon-button" aria-label="Connect">→</button>
+            </div>
+          </form>
+          <p class="helper" id="connectFeedback" role="status"></p>
+        </div>
+      </section>
+
+      <section class="chat-view" id="chatView" hidden>
+        <header class="chat-header">
         <div class="contact-summary">
           <div class="avatar" id="contactAvatar">AM</div>
           <div>
-            <div class="title-line"><h2 id="contactName">Alex Morgan</h2><span class="presence">● online</span></div>
+            <div class="title-line"><h2 id="contactName">Alex Morgan</h2><span class="presence" id="contactPresence">● online</span></div>
             <p class="mono muted" id="contactIdLabel">LL-482913</p>
           </div>
         </div>
         <div class="chat-actions">
-          <button class="round-button" id="clearChatButton" type="button" aria-label="Clear conversation" title="Clear conversation">⌫</button>
           <button class="round-button" id="moreButton" type="button" aria-label="More options" title="More options">•••</button>
         </div>
-      </header>
+        </header>
 
-      <div class="conversation" id="conversation" aria-live="polite">
+        <div class="conversation" id="conversation" aria-live="polite">
         <div class="date-divider"><span>Today</span></div>
         <div class="thread-intro">
           <div class="avatar avatar-medium">AM</div>
@@ -78,16 +82,17 @@
           <p>Messages here are just between the two of you.</p>
         </div>
         <div class="message-list" id="messageList"></div>
-      </div>
+        </div>
 
-      <form class="composer" id="messageForm">
+        <form class="composer" id="messageForm">
         <button class="round-button composer-action" id="attachButton" type="button" aria-label="Add photo or video" title="Add photo or video">＋</button>
         <input id="mediaInput" type="file" accept="image/*,video/*" hidden />
         <button class="round-button composer-action" id="voiceButton" type="button" aria-label="Record voice message" title="Record voice message">◉</button>
         <textarea id="messageInput" rows="1" placeholder="Write a message..." aria-label="Message"></textarea>
         <button class="send-button" type="submit" aria-label="Send message">↗</button>
-      </form>
-      <p class="composer-note">Press Enter to send · Shift + Enter for a new line · ◉ voice</p>
+        </form>
+        <p class="composer-note">Press Enter to send · Shift + Enter for a new line · ◉ voice</p>
+      </section>
     </main>
   </div>
 

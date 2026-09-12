@@ -8,7 +8,9 @@ function makeId() {
 
 const defaultState = {
   profile: { name: 'You', id: makeId(), photo: '' },
-  contact: { name: 'Alex Morgan', id: 'SMS-4A2L9Q', initials: 'AM', photo: '' },
+  contact: { name: 'Alex Morgan', id: 'SMS-4A2L9Q', initials: 'AM', photo: '', lastSeen: 'online' },
+  started: false,
+  contacts: [{ name: 'Alex Morgan', id: 'SMS-4A2L9Q', initials: 'AM', photo: '', lastSeen: 'online' }],
   messages: [
     { from: 'them', text: 'Hey! I made it here. This feels much quieter than a group chat.', time: '10:42 AM' },
     { from: 'me', text: 'That is exactly the idea. Just us, and a little breathing room.', time: '10:44 AM' },
@@ -19,12 +21,22 @@ const defaultState = {
 const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || defaultState;
 const $ = (selector) => document.querySelector(selector);
 
+if (typeof state.started !== 'boolean') state.started = false;
+if (!Array.isArray(state.contacts)) state.contacts = state.contact ? [state.contact] : [];
+if (!state.conversations) state.conversations = state.contact ? { [state.contact.id]: state.messages || [] } : {};
+if (state.contact && !state.contact.lastSeen) state.contact.lastSeen = 'last seen recently';
+state.contacts = state.contacts.map((contact) => ({ ...contact, lastSeen: contact.lastSeen || 'last seen recently' }));
+state.messages = state.contact ? (state.conversations[state.contact.id] || []) : [];
+
 if (/^LL-\d{6}$/.test(state.profile.id)) {
   state.profile.id = makeId();
   saveState();
 }
 
-function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function saveState() {
+  if (state.contact) state.conversations[state.contact.id] = state.messages;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
 function initials(name) { return name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase(); }
 function formatTime() { return new Intl.DateTimeFormat([], { hour: 'numeric', minute: '2-digit' }).format(new Date()); }
 
@@ -40,12 +52,43 @@ function renderProfile() {
 }
 
 function renderContact() {
+  if (!state.contact) return;
   $('#contactName').textContent = state.contact.name;
   $('#introName').textContent = state.contact.name;
   $('#contactIdLabel').textContent = state.contact.id;
+  $('#contactPresence').textContent = `● ${state.contact.lastSeen || 'last seen recently'}`;
   setAvatar($('#contactAvatar'), state.contact.initials || initials(state.contact.name), state.contact.photo);
   const introAvatar = document.querySelector('.thread-intro .avatar');
   setAvatar(introAvatar, state.contact.initials || initials(state.contact.name), state.contact.photo);
+}
+
+function renderInbox() {
+  const list = $('#inboxList');
+  list.innerHTML = '';
+  $('#inboxCount').textContent = state.contacts.length;
+  $('#inboxEmpty').hidden = state.contacts.length > 0;
+  state.contacts.forEach((contact) => {
+    const button = document.createElement('button');
+    button.className = `inbox-item${state.contact?.id === contact.id && state.started ? ' active' : ''}`;
+    button.type = 'button';
+    button.dataset.contactId = contact.id;
+    const avatar = document.createElement('span');
+    avatar.className = 'avatar inbox-avatar';
+    setAvatar(avatar, contact.initials || initials(contact.name), contact.photo);
+    const details = document.createElement('span');
+    details.className = 'inbox-details';
+    details.innerHTML = `<strong></strong><span class="mono"></span><span class="inbox-last-seen"></span>`;
+    details.querySelector('strong').textContent = contact.name;
+    details.querySelector('.mono').textContent = contact.id;
+    details.querySelector('.inbox-last-seen').textContent = contact.lastSeen || 'last seen recently';
+    button.append(avatar, details);
+    list.appendChild(button);
+  });
+}
+
+function toggleViews() {
+  $('#startScreen').hidden = state.started;
+  $('#chatView').hidden = !state.started;
 }
 
 function renderMessages() {
@@ -152,11 +195,15 @@ $('#connectForm').addEventListener('submit', (event) => {
     $('#connectFeedback').textContent = 'That is your own ID. Ask someone else for theirs.';
     return;
   }
-  state.contact = { name: 'New connection', id: enteredId, initials: 'NC', photo: '' };
-  state.messages = [];
+  state.contact = { name: 'New connection', id: enteredId, initials: 'NC', photo: '', lastSeen: 'last seen recently' };
+  state.contacts = [state.contact, ...state.contacts.filter((contact) => contact.id !== enteredId)];
+  state.started = true;
+  state.messages = state.conversations[enteredId] || [];
   saveState();
+  renderInbox();
   renderContact();
   renderMessages();
+  toggleViews();
   $('#connectFeedback').textContent = '';
   $('#contactId').value = '';
   showToast('Private thread opened');
@@ -190,12 +237,19 @@ $('#messageInput').addEventListener('input', (event) => {
   event.target.style.height = `${Math.min(event.target.scrollHeight, 120)}px`;
 });
 
-$('#clearChatButton').addEventListener('click', () => {
-  if (!state.messages.length || !window.confirm('Clear this conversation from this browser?')) return;
-  state.messages = [];
+$('#inboxList').addEventListener('click', (event) => {
+  const item = event.target.closest('.inbox-item');
+  if (!item) return;
+  const contact = state.contacts.find((entry) => entry.id === item.dataset.contactId);
+  if (!contact) return;
+  state.contact = contact;
+  state.messages = state.conversations[contact.id] || [];
+  state.started = true;
   saveState();
+  renderInbox();
+  renderContact();
   renderMessages();
-  showToast('Conversation cleared');
+  toggleViews();
 });
 $('#attachButton').addEventListener('click', () => $('#mediaInput').click());
 $('#mediaInput').addEventListener('change', (event) => {
@@ -244,5 +298,7 @@ $('#voiceButton').addEventListener('click', async () => {
 $('#moreButton').addEventListener('click', () => showToast('More thread controls are coming soon'));
 
 renderProfile();
+renderInbox();
 renderContact();
 renderMessages();
+toggleViews();

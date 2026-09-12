@@ -5,6 +5,9 @@ A small messaging prototype for two people. It includes:
 - A unique mixed `SMS-7K4P2Q` ID for each local profile
 - Profile name editing and local profile picture upload
 - A connect-by-ID flow
+- An Inbox contact list with a centered Connect Privately start screen
+- Contact name, profile picture, and last-seen details in the Inbox and thread header
+- Per-contact history retained in the current browser/session with no delete control
 - Text messaging with Enter-to-send
 - Image and video attachments in both app versions
 - Voice messages with browser recording and Streamlit audio capture
@@ -24,4 +27,4 @@ py -m streamlit run app.py
 
 For Streamlit Community Cloud, push this folder to GitHub and select `app.py` as the main file. The `requirements.txt` file is included for dependency installation.
 
-This is still a prototype: media and messages live in the current Streamlit session. Real cross-device delivery requires a backend with authentication, storage, and realtime messaging.
+This is still a prototype: media, profiles, and messages live in the current browser/Streamlit session. Real cross-device profile syncing, last-seen updates, and permanent history require a backend with authentication, storage, and realtime messaging.

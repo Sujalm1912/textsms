@@ -72,19 +72,27 @@ def now():
 if "profile" not in st.session_state:
     st.session_state.profile = {"name": "You", "id": make_id(), "photo": None}
 if "contact" not in st.session_state:
-    st.session_state.contact = {"name": "Alex Morgan", "id": "SMS-4A2L9Q", "photo": None}
+    st.session_state.contact = {"name": "Alex Morgan", "id": "SMS-4A2L9Q", "photo": None, "last_seen": "online"}
+if "contacts" not in st.session_state:
+    st.session_state.contacts = [st.session_state.contact]
+if "started" not in st.session_state:
+    st.session_state.started = False
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {"from": "them", "text": "Hey! I made it here. This feels much quieter than a group chat.", "time": "10:42 AM"},
         {"from": "me", "text": "That is exactly the idea. Just us, and a little breathing room.", "time": "10:44 AM"},
         {"from": "them", "text": "I like it. Send me the plan when you are ready.", "time": "10:45 AM"},
     ]
+if "conversations" not in st.session_state:
+    st.session_state.conversations = {st.session_state.contact["id"]: st.session_state.messages}
 
 # A query parameter makes a thread link portable between browser sessions.
 query_thread = st.query_params.get("thread")
 if query_thread and query_thread != st.session_state.contact["id"]:
-    st.session_state.contact = {"name": "New connection", "id": query_thread, "photo": None}
-    st.session_state.messages = []
+    st.session_state.contact = {"name": "New connection", "id": query_thread, "photo": None, "last_seen": "last seen recently"}
+    st.session_state.contacts = [st.session_state.contact, *[contact for contact in st.session_state.contacts if contact["id"] != query_thread]]
+    st.session_state.messages = st.session_state.conversations.get(query_thread, [])
+    st.session_state.started = True
 
 with st.sidebar:
     st.markdown('<div class="brand"><span class="brand-mark">↗</span>SMSTalks</div>', unsafe_allow_html=True)
@@ -105,31 +113,46 @@ with st.sidebar:
         st.code(st.session_state.profile["id"], language=None)
         st.caption("Copy the ID above and send it privately.")
 
-    st.markdown('<div class="panel">', unsafe_allow_html=True)
-    st.markdown('<span class="eyebrow">START A THREAD</span><h3>Connect privately</h3>', unsafe_allow_html=True)
-    st.caption("Enter the other person's unique ID to open a thread.")
-    connect_id = st.text_input("Enter their unique ID", placeholder="LL-123456", label_visibility="collapsed")
-    if st.button("Connect", type="primary", use_container_width=True):
-        candidate = connect_id.strip().upper()
-        if len(candidate) == 10 and candidate.startswith("SMS-") and all(character in string.ascii_uppercase + string.digits for character in candidate[4:]):
-            if candidate == st.session_state.profile["id"]:
-                st.warning("That is your own ID.")
-            else:
-                st.session_state.contact = {"name": "New connection", "id": candidate, "photo": None}
-                st.session_state.messages = []
-                st.query_params["thread"] = candidate
-                st.rerun()
-        else:
-            st.warning("Use an ID in the format SMS-7K4P2Q.")
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<span class="eyebrow">INBOX</span>', unsafe_allow_html=True)
+    st.caption(f"{len(st.session_state.contacts)} conversation(s)")
+    for contact in st.session_state.contacts:
+        if st.button(f'{initials(contact["name"])}  {contact["name"]}\n{contact["id"]} · {contact.get("last_seen", "last seen recently")}', key=f'inbox_{contact["id"]}', use_container_width=True):
+            if st.session_state.contact["id"] != contact["id"]:
+                st.session_state.messages = st.session_state.conversations.get(contact["id"], [])
+            st.session_state.contact = contact
+            st.session_state.started = True
+            st.rerun()
     st.caption("Local session prototype · add a database for real cross-device delivery")
 
 col_main, col_side = st.columns([3.8, 1.25], gap="large")
+if not st.session_state.started:
+    with col_main:
+        st.markdown('<div style="min-height:65vh;display:grid;place-items:center;text-align:center"><div style="max-width:440px;width:100%"><div class="start-icon">↗</div><div class="eyebrow">PRIVATE MESSAGING</div><h2>Connect privately</h2><p class="muted">Enter the unique ID of the person you want to message.</p></div></div>', unsafe_allow_html=True)
+        connect_id = st.text_input("Their unique ID", placeholder="SMS-7K4P2Q", key="start_connect_id")
+        if st.button("Connect", type="primary", use_container_width=True):
+            candidate = connect_id.strip().upper()
+            if len(candidate) == 10 and candidate.startswith("SMS-") and all(character in string.ascii_uppercase + string.digits for character in candidate[4:]):
+                if candidate == st.session_state.profile["id"]:
+                    st.warning("That is your own ID.")
+                else:
+                    st.session_state.contact = {"name": "New connection", "id": candidate, "photo": None, "last_seen": "last seen recently"}
+                    st.session_state.contacts = [st.session_state.contact, *[contact for contact in st.session_state.contacts if contact["id"] != candidate]]
+                    st.session_state.messages = st.session_state.conversations.get(candidate, [])
+                    st.session_state.started = True
+                    st.query_params["thread"] = candidate
+                    st.rerun()
+            else:
+                st.warning("Use an ID in the format SMS-7K4P2Q.")
+    with col_side:
+        st.markdown('<span class="eyebrow">INBOX</span>', unsafe_allow_html=True)
+        st.caption("Choose a conversation or connect with a new person.")
+    st.stop()
+
 with col_main:
     contact = st.session_state.contact
     st.markdown(
         f'<div class="contact-header"><div class="contact">{avatar_html(contact["name"], contact["photo"])}'
-        f'<div><h2 style="margin:0">{contact["name"]} <span class="online">● online</span></h2>'
+        f'<div><h2 style="margin:0">{contact["name"]} <span class="online">● {contact.get("last_seen", "last seen recently")}</span></h2>'
         f'<div class="mono">{contact["id"]}</div></div></div><div class="mono">Today</div></div>',
         unsafe_allow_html=True,
     )
@@ -163,6 +186,7 @@ with col_main:
         elif voice_message:
             message["audio"] = voice_message.getvalue()
         st.session_state.messages.append(message)
+        st.session_state.conversations[contact["id"]] = st.session_state.messages
         st.rerun()
 
 with col_side:
@@ -177,7 +201,4 @@ with col_side:
     st.text_input("Share link", value=share_url, label_visibility="collapsed")
     st.caption("Share this link or send them the thread ID.")
     st.markdown(f'<div class="share-box"><div class="mono">THREAD ID</div><strong>{thread_id}</strong></div>', unsafe_allow_html=True)
-    if st.button("Clear messages", use_container_width=True):
-        st.session_state.messages = []
-        st.rerun()
-    st.caption("Photos, videos, and voice messages are kept in this browser session for the prototype.")
+    st.caption("History and media are retained in this session and cannot be deleted from the app.")
