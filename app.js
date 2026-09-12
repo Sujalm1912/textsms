@@ -207,6 +207,51 @@ $('#qrButton').addEventListener('click', () => {
   $('#qrDialog').showModal();
 });
 
+let scanStream;
+let scanFrame;
+async function stopQrScan() {
+  window.cancelAnimationFrame(scanFrame);
+  scanStream?.getTracks().forEach((track) => track.stop());
+  scanStream = null;
+  $('#scanVideo').srcObject = null;
+}
+
+$('#scanButton').addEventListener('click', async () => {
+  if (!('BarcodeDetector' in window) || !navigator.mediaDevices?.getUserMedia) {
+    showToast('QR scanning needs a supported camera browser');
+    return;
+  }
+  try {
+    const detector = new BarcodeDetector({ formats: ['qr_code'] });
+    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
+    $('#scanVideo').srcObject = scanStream;
+    $('#scanStatus').textContent = 'Point the camera at their SMSTalks QR code.';
+    $('#scanDialog').showModal();
+    const scan = async () => {
+      if (!scanStream) return;
+      try {
+        const codes = await detector.detect($('#scanVideo'));
+        const rawValue = codes[0]?.rawValue || '';
+        const match = rawValue.toUpperCase().match(/SMS-[A-Z0-9]{6}/);
+        if (match) {
+          $('#contactId').value = match[0];
+          await stopQrScan();
+          $('#scanDialog').close();
+          $('#connectForm').requestSubmit();
+          return;
+        }
+      } catch (error) {
+        $('#scanStatus').textContent = 'Keep the QR code inside the camera frame.';
+      }
+      scanFrame = window.requestAnimationFrame(scan);
+    };
+    scan();
+  } catch (error) {
+    showToast('Camera permission was not granted');
+  }
+});
+$('#scanDialog').addEventListener('close', stopQrScan);
+
 $('#photoInput').addEventListener('change', (event) => {
   const file = event.target.files[0];
   if (!file) return;
