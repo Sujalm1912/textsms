@@ -104,7 +104,14 @@ input:focus, textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px 
   .profile-card .id-copy { width: auto; border: 0; padding: 0; background: transparent; }
   .profile-card .id-copy span:first-child { display: none; }
   .profile-card .id-copy span:last-child { font-size: 15px; }
-  .connect-card, .sidebar-footer { display: none; }
+  .connect-card { display: block; padding: 13px 14px; border-radius: 12px; box-shadow: none; }
+  .connect-card .section-title-row { margin-bottom: 6px; }
+  .connect-card h2 { font-size: 15px; }
+  .connect-card > p { font-size: 11px; line-height: 1.4; }
+  .connect-card label { margin-top: 10px; }
+  .connect-card input { min-height: 42px; font-size: 14px; }
+  .connect-card .icon-button { min-height: 42px; }
+  .sidebar-footer { display: none; }
   .chat-panel { min-height: calc(100dvh - 108px); grid-template-rows: auto 1fr auto auto; }
   .chat-header { padding: 13px 16px; position: sticky; top: 0; z-index: 2; background: rgba(244,239,229,.94); backdrop-filter: blur(10px); }
   .contact-summary { gap: 10px; }

@@ -108,7 +108,7 @@ with st.sidebar:
     st.markdown('<div class="panel">', unsafe_allow_html=True)
     st.markdown('<span class="eyebrow">START A THREAD</span><h3>Connect privately</h3>', unsafe_allow_html=True)
     st.caption("Enter the other person's unique ID to open a thread.")
-    connect_id = st.text_input("Their unique ID", placeholder="LL-123456", label_visibility="collapsed")
+    connect_id = st.text_input("Enter their unique ID", placeholder="LL-123456", label_visibility="collapsed")
     if st.button("Connect", type="primary", use_container_width=True):
         candidate = connect_id.strip().upper()
         if len(candidate) == 9 and candidate.startswith("LL-") and candidate[3:].isdigit():
