@@ -85,10 +85,7 @@ function renderInboxList(selector) {
 }
 
 function renderInbox() {
-  $('#inboxCount').textContent = state.contacts.length;
-  $('#inboxEmpty').hidden = state.contacts.length > 0;
   $('#inboxPageEmpty').hidden = state.contacts.length > 0;
-  renderInboxList('#inboxList');
   renderInboxList('#inboxPageList');
 }
 
@@ -97,7 +94,6 @@ function toggleViews() {
   $('#startScreen').hidden = state.view !== 'start';
   $('#inboxScreen').hidden = state.view !== 'inbox';
   $('#chatView').hidden = !chatMode;
-  $('.inbox-card').hidden = state.view === 'start';
   $('#appShell').classList.toggle('chat-mode', chatMode);
 }
 
@@ -285,7 +281,6 @@ function handleInboxClick(event) {
   openContact(contact);
 }
 
-$('#inboxList').addEventListener('click', handleInboxClick);
 $('#inboxPageList').addEventListener('click', handleInboxClick);
 
 $('#backToInbox').addEventListener('click', () => { window.location.hash = '#inbox'; });
