@@ -116,6 +116,11 @@ with st.sidebar:
     if st.button("Copy my ID", use_container_width=True):
         st.code(st.session_state.profile["id"], language=None)
         st.caption("Copy the ID above and send it privately.")
+    if st.button("Show my QR", use_container_width=True):
+        st.session_state.show_qr = True
+    if st.session_state.get("show_qr"):
+        qr_url = "https://api.qrserver.com/v1/create-qr-code/?" + urlencode({"size": "220x220", "data": f"SMSTalks ID: {st.session_state.profile['id']}"})
+        st.image(qr_url, caption=st.session_state.profile["id"], width=220)
 
     st.markdown('<span class="eyebrow">INBOX</span>', unsafe_allow_html=True)
     st.caption(f"{len(st.session_state.contacts)} conversation(s)")

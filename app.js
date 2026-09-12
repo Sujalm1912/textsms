@@ -51,6 +51,12 @@ function renderProfile() {
   setAvatar($('#profileAvatarButton'), initials(state.profile.name), state.profile.photo);
 }
 
+function renderQrCode() {
+  const qrValue = encodeURIComponent(`SMSTalks ID: ${state.profile.id}`);
+  $('#qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${qrValue}`;
+  $('#qrId').textContent = state.profile.id;
+}
+
 function renderContact() {
   if (!state.contact) return;
   $('#contactName').textContent = state.contact.name;
@@ -196,6 +202,10 @@ $('#copyIdButton').addEventListener('click', async () => {
   await navigator.clipboard?.writeText(state.profile.id);
   showToast('Your unique ID was copied');
 });
+$('#qrButton').addEventListener('click', () => {
+  renderQrCode();
+  $('#qrDialog').showModal();
+});
 
 $('#photoInput').addEventListener('change', (event) => {
   const file = event.target.files[0];
@@ -338,6 +348,7 @@ $('#voiceButton').addEventListener('click', async () => {
 $('#moreButton').addEventListener('click', () => showToast('More thread controls are coming soon'));
 
 renderProfile();
+renderQrCode();
 renderInbox();
 renderContact();
 renderMessages();
