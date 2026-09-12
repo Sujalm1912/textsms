@@ -51,7 +51,7 @@ st.markdown(
 
 
 def make_id():
-    return "LL-" + "".join(random.choices(string.digits, k=6))
+    return "SMS-" + "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
 
 def initials(name):
@@ -72,7 +72,7 @@ def now():
 if "profile" not in st.session_state:
     st.session_state.profile = {"name": "You", "id": make_id(), "photo": None}
 if "contact" not in st.session_state:
-    st.session_state.contact = {"name": "Alex Morgan", "id": "LL-482913", "photo": None}
+    st.session_state.contact = {"name": "Alex Morgan", "id": "SMS-4A2L9Q", "photo": None}
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {"from": "them", "text": "Hey! I made it here. This feels much quieter than a group chat.", "time": "10:42 AM"},
@@ -111,7 +111,7 @@ with st.sidebar:
     connect_id = st.text_input("Enter their unique ID", placeholder="LL-123456", label_visibility="collapsed")
     if st.button("Connect", type="primary", use_container_width=True):
         candidate = connect_id.strip().upper()
-        if len(candidate) == 9 and candidate.startswith("LL-") and candidate[3:].isdigit():
+        if len(candidate) == 10 and candidate.startswith("SMS-") and all(character in string.ascii_uppercase + string.digits for character in candidate[4:]):
             if candidate == st.session_state.profile["id"]:
                 st.warning("That is your own ID.")
             else:
@@ -120,7 +120,7 @@ with st.sidebar:
                 st.query_params["thread"] = candidate
                 st.rerun()
         else:
-            st.warning("Use an ID in the format LL-123456.")
+            st.warning("Use an ID in the format SMS-7K4P2Q.")
     st.markdown('</div>', unsafe_allow_html=True)
     st.caption("Local session prototype · add a database for real cross-device delivery")
 

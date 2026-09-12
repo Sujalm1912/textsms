@@ -2,7 +2,7 @@
 
 A small messaging prototype for two people. It includes:
 
-- A unique `LL-######` ID for each local profile
+- A unique mixed `SMS-7K4P2Q` ID for each local profile
 - Profile name editing and local profile picture upload
 - A connect-by-ID flow
 - Text messaging with Enter-to-send

@@ -1,8 +1,14 @@
 const STORAGE_KEY = 'smstalks-prototype';
 
+function makeId() {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const suffix = Array.from({ length: 6 }, () => characters[Math.floor(Math.random() * characters.length)]).join('');
+  return `SMS-${suffix}`;
+}
+
 const defaultState = {
-  profile: { name: 'You', id: 'LL-739204', photo: '' },
-  contact: { name: 'Alex Morgan', id: 'LL-482913', initials: 'AM', photo: '' },
+  profile: { name: 'You', id: makeId(), photo: '' },
+  contact: { name: 'Alex Morgan', id: 'SMS-4A2L9Q', initials: 'AM', photo: '' },
   messages: [
     { from: 'them', text: 'Hey! I made it here. This feels much quieter than a group chat.', time: '10:42 AM' },
     { from: 'me', text: 'That is exactly the idea. Just us, and a little breathing room.', time: '10:44 AM' },
@@ -12,6 +18,11 @@ const defaultState = {
 
 const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || defaultState;
 const $ = (selector) => document.querySelector(selector);
+
+if (/^LL-\d{6}$/.test(state.profile.id)) {
+  state.profile.id = makeId();
+  saveState();
+}
 
 function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 function initials(name) { return name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase(); }
@@ -133,8 +144,8 @@ $('#profileForm').addEventListener('submit', (event) => {
 $('#connectForm').addEventListener('submit', (event) => {
   event.preventDefault();
   const enteredId = $('#contactId').value.trim().toUpperCase();
-  if (!/^LL-\d{6}$/.test(enteredId)) {
-    $('#connectFeedback').textContent = 'Use an ID in the format LL-123456.';
+  if (!/^SMS-[A-Z0-9]{6}$/.test(enteredId)) {
+    $('#connectFeedback').textContent = 'Use an ID in the format SMS-7K4P2Q.';
     return;
   }
   if (enteredId === state.profile.id) {
