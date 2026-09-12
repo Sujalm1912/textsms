@@ -87,8 +87,39 @@ function renderInbox() {
 }
 
 function toggleViews() {
-  $('#startScreen').hidden = state.started;
-  $('#chatView').hidden = !state.started;
+  const chatMode = state.started;
+  $('#startScreen').hidden = chatMode;
+  $('#chatView').hidden = !chatMode;
+  $('#appShell').classList.toggle('chat-mode', chatMode);
+}
+
+function openContact(contact) {
+  state.contact = contact;
+  state.messages = state.conversations[contact.id] || [];
+  state.started = true;
+  saveState();
+  window.location.hash = `chat/${encodeURIComponent(contact.id)}`;
+}
+
+function routeFromUrl() {
+  const match = window.location.hash.match(/^#chat\/(.+)$/);
+  if (!match) {
+    state.started = false;
+    toggleViews();
+    return;
+  }
+  const contact = state.contacts.find((entry) => entry.id === decodeURIComponent(match[1]));
+  if (!contact) {
+    window.location.hash = '';
+    return;
+  }
+  state.contact = contact;
+  state.messages = state.conversations[contact.id] || [];
+  state.started = true;
+  renderInbox();
+  renderContact();
+  renderMessages();
+  toggleViews();
 }
 
 function renderMessages() {
@@ -204,6 +235,7 @@ $('#connectForm').addEventListener('submit', (event) => {
   renderContact();
   renderMessages();
   toggleViews();
+  window.location.hash = `chat/${encodeURIComponent(enteredId)}`;
   $('#connectFeedback').textContent = '';
   $('#contactId').value = '';
   showToast('Private thread opened');
@@ -242,15 +274,11 @@ $('#inboxList').addEventListener('click', (event) => {
   if (!item) return;
   const contact = state.contacts.find((entry) => entry.id === item.dataset.contactId);
   if (!contact) return;
-  state.contact = contact;
-  state.messages = state.conversations[contact.id] || [];
-  state.started = true;
-  saveState();
-  renderInbox();
-  renderContact();
-  renderMessages();
-  toggleViews();
+  openContact(contact);
 });
+
+$('#backToInbox').addEventListener('click', () => { window.location.hash = ''; });
+window.addEventListener('hashchange', routeFromUrl);
 $('#attachButton').addEventListener('click', () => $('#mediaInput').click());
 $('#mediaInput').addEventListener('change', (event) => {
   const file = event.target.files[0];
@@ -301,4 +329,4 @@ renderProfile();
 renderInbox();
 renderContact();
 renderMessages();
-toggleViews();
+routeFromUrl();

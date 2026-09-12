@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="app-shell">
+  <div class="app-shell" id="appShell">
     <aside class="sidebar" aria-label="Profile and conversation details">
       <div class="brand"><span class="brand-mark">↗</span><span>SMSTalks</span></div>
 
@@ -62,6 +62,7 @@
 
       <section class="chat-view" id="chatView" hidden>
         <header class="chat-header">
+        <button class="back-button" id="backToInbox" type="button" aria-label="Back to inbox">← <span>Inbox</span></button>
         <div class="contact-summary">
           <div class="avatar" id="contactAvatar">AM</div>
           <div>
